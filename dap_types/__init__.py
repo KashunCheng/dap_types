@@ -1,11 +1,13 @@
 from __future__ import annotations
 from typing import Any, Dict, List, Literal, Optional, Union, Annotated
-from pydantic import BaseModel, Field, RootModel, TypeAdapter
+from pydantic import BaseModel, Field, RootModel, TypeAdapter, ConfigDict
 
 class DebugAdapterProtocol(BaseModel):
+    model_config = ConfigDict(extra='allow')
     pass
 
 class ProtocolMessage(BaseModel):
+    model_config = ConfigDict(extra='allow')
     seq: int = Field(..., description='Sequence number of the message (also known as message ID). The `seq` for the first message sent by a client or debug adapter is 1, and for each subsequent message is 1 greater than the previous message sent by that actor. `seq` can be used to order requests, responses, and events, and to associate requests with their corresponding responses. For protocol messages of type `request` the sequence number can be used to cancel the request.')
     type: str = Field(..., description='Message type.')
 
@@ -28,17 +30,19 @@ class Response(ProtocolMessage):
     body: Optional[Union[List[Any], bool, int, float, Dict[str, Any], str]] = Field(None, description='Contains request result if success is true and error details if success is false.')
 
 class CancelArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     requestId: Optional[int] = Field(None, description='The ID (attribute `seq`) of the request to cancel. If missing no request is cancelled.\nBoth a `requestId` and a `progressId` can be specified in one request.')
     progressId: Optional[str] = Field(None, description='The ID (attribute `progressId`) of the progress to cancel. If missing no progress is cancelled.\nBoth a `requestId` and a `progressId` can be specified in one request.')
 
 class CancelResponse(Response):
-    success: Literal[True]
     pass
+    success: Literal[True]
 
 class InitializedEvent(Event):
     event: Literal['initialized']
 
 class StoppedEventBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     reason: str = Field(..., description='The reason for the event.\nFor backward compatibility this string is shown in the UI if the `description` attribute is missing (but it must not be translated).')
     description: Optional[str] = Field(None, description="The full reason for the event, e.g. 'Paused on exception'. This string is shown in the UI as is and can be translated.")
     threadId: Optional[int] = Field(None, description='The thread which was stopped.')
@@ -52,6 +56,7 @@ class StoppedEvent(Event):
     body: StoppedEventBody
 
 class ContinuedEventBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     threadId: int = Field(..., description='The thread which was continued.')
     allThreadsContinued: Optional[bool] = Field(None, description='If omitted or set to `true`, this event signals to the client that all threads have been resumed. The value `false` indicates that not all threads were resumed.')
 
@@ -60,6 +65,7 @@ class ContinuedEvent(Event):
     body: ContinuedEventBody
 
 class ExitedEventBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     exitCode: int = Field(..., description='The exit code returned from the debuggee.')
 
 class ExitedEvent(Event):
@@ -67,6 +73,7 @@ class ExitedEvent(Event):
     body: ExitedEventBody
 
 class TerminatedEventBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     restart: Optional[Union[List[Any], bool, int, float, Dict[str, Any], str]] = Field(None, description='A debug adapter may set `restart` to true (or to an arbitrary object) to request that the client restarts the session.\nThe value is not interpreted by the client and passed unmodified as an attribute `__restart` to the `launch` and `attach` requests.')
 
 class TerminatedEvent(Event):
@@ -74,6 +81,7 @@ class TerminatedEvent(Event):
     body: Optional[TerminatedEventBody] = None
 
 class ThreadEventBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     reason: str = Field(..., description='The reason for the event.')
     threadId: int = Field(..., description='The identifier of the thread.')
 
@@ -82,6 +90,7 @@ class ThreadEvent(Event):
     body: ThreadEventBody
 
 class ProcessEventBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     name: str = Field(..., description="The logical name of the process. This is usually the full path to process's executable file. Example: /home/example/myproj/program.js.")
     systemProcessId: Optional[int] = Field(None, description='The process ID of the debugged process, as assigned by the operating system. This property should be omitted for logical processes that do not map to operating system processes on the machine.')
     isLocalProcess: Optional[bool] = Field(None, description='If true, the process is running on the same computer as the debug adapter.')
@@ -93,6 +102,7 @@ class ProcessEvent(Event):
     body: ProcessEventBody
 
 class ProgressStartEventBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     progressId: str = Field(..., description='An ID that can be used in subsequent `progressUpdate` and `progressEnd` events to make them refer to the same progress reporting.\nIDs must be unique within a debug session.')
     title: str = Field(..., description='Short title of the progress reporting. Shown in the UI to describe the long running operation.')
     requestId: Optional[int] = Field(None, description='The request ID that this progress report is related to. If specified a debug adapter is expected to emit progress events for the long running request until the request has been either completed or cancelled.\nIf the request ID is omitted, the progress report is assumed to be related to some general activity of the debug adapter.')
@@ -105,6 +115,7 @@ class ProgressStartEvent(Event):
     body: ProgressStartEventBody
 
 class ProgressUpdateEventBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     progressId: str = Field(..., description='The ID that was introduced in the initial `progressStart` event.')
     message: Optional[str] = Field(None, description='More detailed progress message. If omitted, the previous message (if any) is used.')
     percentage: Optional[float] = Field(None, description='Progress percentage to display (value range: 0 to 100). If omitted no percentage is shown.')
@@ -114,6 +125,7 @@ class ProgressUpdateEvent(Event):
     body: ProgressUpdateEventBody
 
 class ProgressEndEventBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     progressId: str = Field(..., description='The ID that was introduced in the initial `ProgressStartEvent`.')
     message: Optional[str] = Field(None, description='More detailed progress message. If omitted, the previous message (if any) is used.')
 
@@ -122,6 +134,7 @@ class ProgressEndEvent(Event):
     body: ProgressEndEventBody
 
 class MemoryEventBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     memoryReference: str = Field(..., description='Memory reference of a memory range that has been updated.')
     offset: int = Field(..., description='Starting offset in bytes where memory has been updated. Can be negative.')
     count: int = Field(..., description='Number of bytes updated.')
@@ -131,6 +144,7 @@ class MemoryEvent(Event):
     body: MemoryEventBody
 
 class RunInTerminalRequestArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     kind: Optional[Literal['integrated', 'external']] = Field(None, description='What kind of terminal to launch. Defaults to `integrated` if not specified.')
     title: Optional[str] = Field(None, description='Title of the terminal.')
     cwd: str = Field(..., description='Working directory for the command. For non-empty, valid paths this typically results in execution of a change directory command.')
@@ -139,22 +153,25 @@ class RunInTerminalRequestArguments(BaseModel):
     argsCanBeInterpretedByShell: Optional[bool] = Field(None, description='This property should only be set if the corresponding capability `supportsArgsCanBeInterpretedByShell` is true. If the client uses an intermediary shell to launch the application, then the client must not attempt to escape characters with special meanings for the shell. The user is fully responsible for escaping as needed and that arguments using special characters may not be portable across shells.')
 
 class RunInTerminalResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     processId: Optional[int] = Field(None, description='The process ID. The value should be less than or equal to 2147483647 (2^31-1).')
     shellProcessId: Optional[int] = Field(None, description='The process ID of the terminal shell. The value should be less than or equal to 2147483647 (2^31-1).')
 
 class RunInTerminalResponse(Response):
-    success: Literal[True]
     body: RunInTerminalResponseBody
+    success: Literal[True]
 
 class StartDebuggingRequestArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     configuration: Dict[str, Any] = Field(..., description="Arguments passed to the new debug session. The arguments must only contain properties understood by the `launch` or `attach` requests of the debug adapter and they must not contain any client-specific properties (e.g. `type`) or client-specific features (e.g. substitutable 'variables').")
     request: Literal['launch', 'attach'] = Field(..., description='Indicates whether the new debug session should be started with a `launch` or `attach` request.')
 
 class StartDebuggingResponse(Response):
-    success: Literal[True]
     pass
+    success: Literal[True]
 
 class InitializeRequestArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     clientID: Optional[str] = Field(None, description='The ID of the client using this adapter.')
     clientName: Optional[str] = Field(None, description='The human-readable name of the client using this adapter.')
     adapterID: str = Field(..., description='The ID of the debug adapter.')
@@ -174,51 +191,58 @@ class InitializeRequestArguments(BaseModel):
     supportsANSIStyling: Optional[bool] = Field(None, description='The client will interpret ANSI escape sequences in the display of `OutputEvent.output` and `Variable.value` fields when `Capabilities.supportsANSIStyling` is also enabled.')
 
 class ConfigurationDoneArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     pass
 
 class ConfigurationDoneResponse(Response):
-    success: Literal[True]
     pass
+    success: Literal[True]
 
 class LaunchRequestArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     noDebug: Optional[bool] = Field(None, description='If true, the launch request should launch the program without enabling debugging.')
     field__restart: Optional[Union[List[Any], bool, int, float, Dict[str, Any], str]] = Field(None, alias='__restart', description='Arbitrary data from the previous, restarted session.\nThe data is sent as the `restart` attribute of the `terminated` event.\nThe client should leave the data intact.')
 
 class LaunchResponse(Response):
-    success: Literal[True]
     pass
+    success: Literal[True]
 
 class AttachRequestArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     field__restart: Optional[Union[List[Any], bool, int, float, Dict[str, Any], str]] = Field(None, alias='__restart', description='Arbitrary data from the previous, restarted session.\nThe data is sent as the `restart` attribute of the `terminated` event.\nThe client should leave the data intact.')
 
 class AttachResponse(Response):
-    success: Literal[True]
     pass
+    success: Literal[True]
 
 class RestartArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     arguments: Optional[Union[LaunchRequestArguments, AttachRequestArguments]] = Field(None, description='The latest version of the `launch` or `attach` configuration.')
 
 class RestartResponse(Response):
-    success: Literal[True]
     pass
+    success: Literal[True]
 
 class DisconnectArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     restart: Optional[bool] = Field(None, description='A value of true indicates that this `disconnect` request is part of a restart sequence.')
     terminateDebuggee: Optional[bool] = Field(None, description='Indicates whether the debuggee should be terminated when the debugger is disconnected.\nIf unspecified, the debug adapter is free to do whatever it thinks is best.\nThe attribute is only honored by a debug adapter if the corresponding capability `supportTerminateDebuggee` is true.')
     suspendDebuggee: Optional[bool] = Field(None, description='Indicates whether the debuggee should stay suspended when the debugger is disconnected.\nIf unspecified, the debuggee should resume execution.\nThe attribute is only honored by a debug adapter if the corresponding capability `supportSuspendDebuggee` is true.')
 
 class DisconnectResponse(Response):
-    success: Literal[True]
     pass
+    success: Literal[True]
 
 class TerminateArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     restart: Optional[bool] = Field(None, description='A value of true indicates that this `terminate` request is part of a restart sequence.')
 
 class TerminateResponse(Response):
-    success: Literal[True]
     pass
+    success: Literal[True]
 
 class DataBreakpointInfoArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     variablesReference: Optional[int] = Field(None, description="Reference to the variable container if the data breakpoint is requested for a child of the container. The `variablesReference` must have been obtained in the current suspended state. See 'Lifetime of Object References' in the Overview section for details.")
     name: str = Field(..., description="The name of the variable's child to obtain data breakpoint information for.\nIf `variablesReference` isn't specified, this can be an expression, or an address if `asAddress` is also true.")
     frameId: Optional[int] = Field(None, description='When `name` is an expression, evaluate it in the scope of this stack frame. If not specified, the expression is evaluated in the global scope. When `variablesReference` is specified, this property has no effect.')
@@ -227,66 +251,74 @@ class DataBreakpointInfoArguments(BaseModel):
     mode: Optional[str] = Field(None, description='The mode of the desired breakpoint. If defined, this must be one of the `breakpointModes` the debug adapter advertised in its `Capabilities`.')
 
 class ContinueArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     threadId: int = Field(..., description='Specifies the active thread. If the debug adapter supports single thread execution (see `supportsSingleThreadExecutionRequests`) and the argument `singleThread` is true, only the thread with this ID is resumed.')
     singleThread: Optional[bool] = Field(None, description='If this flag is true, execution is resumed only for the thread with given `threadId`.')
 
 class ContinueResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     allThreadsContinued: Optional[bool] = Field(None, description='If omitted or set to `true`, this response signals to the client that all threads have been resumed. The value `false` indicates that not all threads were resumed.')
 
 class ContinueResponse(Response):
-    success: Literal[True]
     body: ContinueResponseBody
+    success: Literal[True]
 
 class NextResponse(Response):
-    success: Literal[True]
     pass
+    success: Literal[True]
 
 class StepInResponse(Response):
-    success: Literal[True]
     pass
+    success: Literal[True]
 
 class StepOutResponse(Response):
-    success: Literal[True]
     pass
+    success: Literal[True]
 
 class StepBackResponse(Response):
-    success: Literal[True]
     pass
+    success: Literal[True]
 
 class ReverseContinueArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     threadId: int = Field(..., description='Specifies the active thread. If the debug adapter supports single thread execution (see `supportsSingleThreadExecutionRequests`) and the `singleThread` argument is true, only the thread with this ID is resumed.')
     singleThread: Optional[bool] = Field(None, description='If this flag is true, backward execution is resumed only for the thread with given `threadId`.')
 
 class ReverseContinueResponse(Response):
-    success: Literal[True]
     pass
+    success: Literal[True]
 
 class RestartFrameArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     frameId: int = Field(..., description="Restart the stack frame identified by `frameId`. The `frameId` must have been obtained in the current suspended state. See 'Lifetime of Object References' in the Overview section for details.")
 
 class RestartFrameResponse(Response):
-    success: Literal[True]
     pass
+    success: Literal[True]
 
 class GotoArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     threadId: int = Field(..., description='Set the goto target for this thread.')
     targetId: int = Field(..., description='The location where the debuggee will continue to run.')
 
 class GotoResponse(Response):
-    success: Literal[True]
     pass
+    success: Literal[True]
 
 class PauseArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     threadId: int = Field(..., description='Pause execution for this thread.')
 
 class PauseResponse(Response):
-    success: Literal[True]
     pass
+    success: Literal[True]
 
 class ScopesArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     frameId: int = Field(..., description="Retrieve the scopes for the stack frame identified by `frameId`. The `frameId` must have been obtained in the current suspended state. See 'Lifetime of Object References' in the Overview section for details.")
 
 class SetVariableResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     value: str = Field(..., description='The new value of the variable.')
     type: Optional[str] = Field(None, description='The type of the new value. Typically shown in the UI when hovering over the value.')
     variablesReference: Optional[int] = Field(None, description="If `variablesReference` is > 0, the new value is structured and its children can be retrieved by passing `variablesReference` to the `variables` request as long as execution remains suspended. See 'Lifetime of Object References' in the Overview section for details.\n\nIf this property is included in the response, any `variablesReference` previously associated with the updated variable, and those of its children, are no longer valid.")
@@ -296,16 +328,17 @@ class SetVariableResponseBody(BaseModel):
     valueLocationReference: Optional[int] = Field(None, description="A reference that allows the client to request the location where the new value is declared. For example, if the new value is function pointer, the adapter may be able to look up the function's location. This should be present only if the adapter is likely to be able to resolve the location.\n\nThis reference shares the same lifetime as the `variablesReference`. See 'Lifetime of Object References' in the Overview section for details.")
 
 class SetVariableResponse(Response):
-    success: Literal[True]
     body: SetVariableResponseBody
+    success: Literal[True]
 
 class SourceResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     content: str = Field(..., description='Content of the source reference.')
     mimeType: Optional[str] = Field(None, description='Content type (MIME type) of the source.')
 
 class SourceResponse(Response):
-    success: Literal[True]
     body: SourceResponseBody
+    success: Literal[True]
 
 class ThreadsRequest(Request):
     command: Literal['threads']
@@ -316,60 +349,71 @@ class ThreadsRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class TerminateThreadsArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     threadIds: Optional[List[int]] = Field(None, description='Ids of threads to be terminated.')
 
 class TerminateThreadsResponse(Response):
-    success: Literal[True]
     pass
+    success: Literal[True]
 
 class ModulesArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     startModule: Optional[int] = Field(None, description='The index of the first module to return; if omitted modules start at 0.')
     moduleCount: Optional[int] = Field(None, description='The number of modules to return. If `moduleCount` is not specified or 0, all modules are returned.')
 
 class LoadedSourcesArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     pass
 
 class StepInTargetsArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     frameId: int = Field(..., description='The stack frame for which to retrieve the possible step-in targets.')
 
 class CompletionsArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     frameId: Optional[int] = Field(None, description='Returns completions in the scope of this stack frame. If not specified, the completions are returned for the global scope.')
     text: str = Field(..., description='One or more source lines. Typically this is the text users have typed into the debug console before they asked for completion.')
     column: int = Field(..., description='The position within `text` for which to determine the completion proposals. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based.')
     line: Optional[int] = Field(None, description='A line for which to determine the completion proposals. If missing the first line of the text is assumed.')
 
 class ExceptionInfoArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     threadId: int = Field(..., description='Thread for which exception information should be retrieved.')
 
 class ReadMemoryArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     memoryReference: str = Field(..., description='Memory reference to the base location from which data should be read.')
     offset: Optional[int] = Field(None, description='Offset (in bytes) to be applied to the reference location before reading data. Can be negative.')
     count: int = Field(..., description='Number of bytes to read at the specified location and offset.')
 
 class ReadMemoryResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     address: str = Field(..., description='The address of the first byte of data returned.\nTreated as a hex value if prefixed with `0x`, or as a decimal value otherwise.')
     unreadableBytes: Optional[int] = Field(None, description='The number of unreadable bytes encountered after the last successfully read byte.\nThis can be used to determine the number of bytes that should be skipped before a subsequent `readMemory` request succeeds.')
     data: Optional[str] = Field(None, description="The bytes read from memory, encoded using base64. If the decoded length of `data` is less than the requested `count` in the original `readMemory` request, and `unreadableBytes` is zero or omitted, then the client should assume it's reached the end of readable memory.")
 
 class ReadMemoryResponse(Response):
-    success: Literal[True]
     body: Optional[ReadMemoryResponseBody] = None
+    success: Literal[True]
 
 class WriteMemoryArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     memoryReference: str = Field(..., description='Memory reference to the base location to which data should be written.')
     offset: Optional[int] = Field(None, description='Offset (in bytes) to be applied to the reference location before writing data. Can be negative.')
     allowPartial: Optional[bool] = Field(None, description='Property to control partial writes. If true, the debug adapter should attempt to write memory even if the entire memory region is not writable. In such a case the debug adapter should stop after hitting the first byte of memory that cannot be written and return the number of bytes written in the response via the `offset` and `bytesWritten` properties.\nIf false or missing, a debug adapter should attempt to verify the region is writable before writing, and fail the response if it is not.')
     data: str = Field(..., description='Bytes to write, encoded using base64.')
 
 class WriteMemoryResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     offset: Optional[int] = Field(None, description='Property that should be returned when `allowPartial` is true to indicate the offset of the first byte of data successfully written. Can be negative.')
     bytesWritten: Optional[int] = Field(None, description='Property that should be returned when `allowPartial` is true to indicate the number of bytes starting from address that were successfully written.')
 
 class WriteMemoryResponse(Response):
-    success: Literal[True]
     body: Optional[WriteMemoryResponseBody] = None
+    success: Literal[True]
 
 class DisassembleArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     memoryReference: str = Field(..., description='Memory reference to the base location containing the instructions to disassemble.')
     offset: Optional[int] = Field(None, description='Offset (in bytes) to be applied to the reference location before disassembling. Can be negative.')
     instructionOffset: Optional[int] = Field(None, description='Offset (in instructions) to be applied after the byte offset (if any) before disassembling. Can be negative.')
@@ -377,9 +421,11 @@ class DisassembleArguments(BaseModel):
     resolveSymbols: Optional[bool] = Field(None, description='If true, the adapter should attempt to resolve memory addresses and other values to symbolic names.')
 
 class LocationsArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     locationReference: int = Field(..., description='Location reference to resolve.')
 
 class ExceptionBreakpointsFilter(BaseModel):
+    model_config = ConfigDict(extra='allow')
     filter: str = Field(..., description='The internal ID of the filter option. This value is passed to the `setExceptionBreakpoints` request.')
     label: str = Field(..., description='The name of the filter option. This is shown in the UI.')
     description: Optional[str] = Field(None, description='A help text providing additional information about the exception filter. This string is typically shown as a hover and can be translated.')
@@ -388,6 +434,7 @@ class ExceptionBreakpointsFilter(BaseModel):
     conditionDescription: Optional[str] = Field(None, description='A help text providing information about the condition. This string is shown as the placeholder text for a text box and can be translated.')
 
 class Message(BaseModel):
+    model_config = ConfigDict(extra='allow')
     id: int = Field(..., description='Unique (within a debug adapter implementation) identifier for the message. The purpose of these error IDs is to help extension authors that have the requirement that every user visible error message needs a corresponding error number, so that users or customer support can find information about the specific error more easily.')
     format: str = Field(..., description='A format string for the message. Embedded variables have the form `{name}`.\nIf variable name starts with an underscore character, the variable does not contain user data (PII) and can be safely used for telemetry purposes.')
     variables: Optional[Dict[str, str]] = Field(None, description='An object used as a dictionary for looking up the variables in the format string.')
@@ -397,6 +444,7 @@ class Message(BaseModel):
     urlLabel: Optional[str] = Field(None, description='A label that is presented to the user as the UI for opening the url.')
 
 class Module(BaseModel):
+    model_config = ConfigDict(extra='allow')
     id: Union[int, str] = Field(..., description='Unique identifier for the module.')
     name: str = Field(..., description='A name of the module.')
     path: Optional[str] = Field(None, description='Logical full path to the module. The exact definition is implementation defined, but usually this would be a full path to the on-disk file for the module.')
@@ -409,6 +457,7 @@ class Module(BaseModel):
     addressRange: Optional[str] = Field(None, description='Address range covered by this module.')
 
 class ColumnDescriptor(BaseModel):
+    model_config = ConfigDict(extra='allow')
     attributeName: str = Field(..., description='Name of the attribute rendered in this column.')
     label: str = Field(..., description='Header UI label of column.')
     format: Optional[str] = Field(None, description='Format to use for the rendered values in this column. TBD how the format strings looks like.')
@@ -416,22 +465,26 @@ class ColumnDescriptor(BaseModel):
     width: Optional[int] = Field(None, description='Width of this column in characters (hint only).')
 
 class Thread(BaseModel):
+    model_config = ConfigDict(extra='allow')
     id: int = Field(..., description='Unique identifier for the thread.')
     name: str = Field(..., description='The name of the thread.')
 
 class VariablePresentationHint(BaseModel):
+    model_config = ConfigDict(extra='allow')
     kind: Optional[str] = Field(None, description='The kind of variable. Before introducing additional values, try to use the listed values.')
     attributes: Optional[List[str]] = Field(None, description='Set of attributes represented as an array of strings. Before introducing additional values, try to use the listed values.')
     visibility: Optional[str] = Field(None, description='Visibility of variable. Before introducing additional values, try to use the listed values.')
     lazy: Optional[bool] = Field(None, description="If true, clients can present the variable with a UI that supports a specific gesture to trigger its evaluation.\nThis mechanism can be used for properties that require executing code when retrieving their value and where the code execution can be expensive and/or produce side-effects. A typical example are properties based on a getter function.\nPlease note that in addition to the `lazy` flag, the variable's `variablesReference` is expected to refer to a variable that will provide the value through another `variable` request.")
 
 class BreakpointLocation(BaseModel):
+    model_config = ConfigDict(extra='allow')
     line: int = Field(..., description='Start line of breakpoint location.')
     column: Optional[int] = Field(None, description='The start position of a breakpoint location. Position is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based.')
     endLine: Optional[int] = Field(None, description='The end line of breakpoint location if the location covers a range.')
     endColumn: Optional[int] = Field(None, description='The end position of a breakpoint location (if the location covers a range). Position is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based.')
 
 class SourceBreakpoint(BaseModel):
+    model_config = ConfigDict(extra='allow')
     line: int = Field(..., description='The source line of the breakpoint or logpoint.')
     column: Optional[int] = Field(None, description='Start position within source line of the breakpoint or logpoint. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based.')
     condition: Optional[str] = Field(None, description='The expression for conditional breakpoints.\nIt is only honored by a debug adapter if the corresponding capability `supportsConditionalBreakpoints` is true.')
@@ -440,6 +493,7 @@ class SourceBreakpoint(BaseModel):
     mode: Optional[str] = Field(None, description='The mode of this breakpoint. If defined, this must be one of the `breakpointModes` the debug adapter advertised in its `Capabilities`.')
 
 class FunctionBreakpoint(BaseModel):
+    model_config = ConfigDict(extra='allow')
     name: str = Field(..., description='The name of the function.')
     condition: Optional[str] = Field(None, description='An expression for conditional breakpoints.\nIt is only honored by a debug adapter if the corresponding capability `supportsConditionalBreakpoints` is true.')
     hitCondition: Optional[str] = Field(None, description='An expression that controls how many hits of the breakpoint are ignored.\nThe debug adapter is expected to interpret the expression as needed.\nThe attribute is only honored by a debug adapter if the corresponding capability `supportsHitConditionalBreakpoints` is true.')
@@ -448,12 +502,14 @@ class DataBreakpointAccessType(RootModel[Literal['read', 'write', 'readWrite']])
     root: Literal['read', 'write', 'readWrite'] = Field(..., description='This enumeration defines all possible access types for data breakpoints.')
 
 class DataBreakpoint(BaseModel):
+    model_config = ConfigDict(extra='allow')
     dataId: str = Field(..., description='An id representing the data. This id is returned from the `dataBreakpointInfo` request.')
     accessType: Optional[DataBreakpointAccessType] = Field(None, description='The access type of the data.')
     condition: Optional[str] = Field(None, description='An expression for conditional breakpoints.')
     hitCondition: Optional[str] = Field(None, description='An expression that controls how many hits of the breakpoint are ignored.\nThe debug adapter is expected to interpret the expression as needed.')
 
 class InstructionBreakpoint(BaseModel):
+    model_config = ConfigDict(extra='allow')
     instructionReference: str = Field(..., description='The instruction reference of the breakpoint.\nThis should be a memory or instruction pointer reference from an `EvaluateResponse`, `Variable`, `StackFrame`, `GotoTarget`, or `Breakpoint`.')
     offset: Optional[int] = Field(None, description='The offset from the instruction reference in bytes.\nThis can be negative.')
     condition: Optional[str] = Field(None, description='An expression for conditional breakpoints.\nIt is only honored by a debug adapter if the corresponding capability `supportsConditionalBreakpoints` is true.')
@@ -464,6 +520,7 @@ class SteppingGranularity(RootModel[Literal['statement', 'line', 'instruction']]
     root: Literal['statement', 'line', 'instruction'] = Field(..., description="The granularity of one 'step' in the stepping requests `next`, `stepIn`, `stepOut`, and `stepBack`.")
 
 class StepInTarget(BaseModel):
+    model_config = ConfigDict(extra='allow')
     id: int = Field(..., description='Unique identifier for a step-in target.')
     label: str = Field(..., description='The name of the step-in target (shown in the UI).')
     line: Optional[int] = Field(None, description='The line of the step-in target.')
@@ -472,6 +529,7 @@ class StepInTarget(BaseModel):
     endColumn: Optional[int] = Field(None, description='End position of the range covered by the step in target. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based.')
 
 class GotoTarget(BaseModel):
+    model_config = ConfigDict(extra='allow')
     id: int = Field(..., description='Unique identifier for a goto target. This is used in the `goto` request.')
     label: str = Field(..., description='The name of the goto target (shown in the UI).')
     line: int = Field(..., description='The line of the goto target.')
@@ -487,10 +545,12 @@ class ChecksumAlgorithm(RootModel[Literal['MD5', 'SHA1', 'SHA256', 'timestamp']]
     root: Literal['MD5', 'SHA1', 'SHA256', 'timestamp'] = Field(..., description='Names of checksum algorithms that may be supported by a debug adapter.')
 
 class Checksum(BaseModel):
+    model_config = ConfigDict(extra='allow')
     algorithm: ChecksumAlgorithm = Field(..., description='The algorithm used to calculate this checksum.')
     checksum: str = Field(..., description='Value of the checksum, encoded as a hexadecimal value.')
 
 class ValueFormat(BaseModel):
+    model_config = ConfigDict(extra='allow')
     hex: Optional[bool] = Field(None, description='Display the value in hex.')
 
 class StackFrameFormat(ValueFormat):
@@ -503,6 +563,7 @@ class StackFrameFormat(ValueFormat):
     includeAll: Optional[bool] = Field(None, description='Includes all stack frames, including those the debug adapter might otherwise hide.')
 
 class ExceptionFilterOptions(BaseModel):
+    model_config = ConfigDict(extra='allow')
     filterId: str = Field(..., description='ID of an exception filter returned by the `exceptionBreakpointFilters` capability.')
     condition: Optional[str] = Field(None, description='An expression for conditional exceptions.\nThe exception breaks into the debugger if the result of the condition is true.')
     mode: Optional[str] = Field(None, description='The mode of this exception breakpoint. If defined, this must be one of the `breakpointModes` the debug adapter advertised in its `Capabilities`.')
@@ -511,10 +572,12 @@ class ExceptionBreakMode(RootModel[Literal['never', 'always', 'unhandled', 'user
     root: Literal['never', 'always', 'unhandled', 'userUnhandled'] = Field(..., description='This enumeration defines all possible conditions when a thrown exception should result in a break.\nnever: never breaks,\nalways: always breaks,\nunhandled: breaks when exception unhandled,\nuserUnhandled: breaks if the exception is not handled by user code.')
 
 class ExceptionPathSegment(BaseModel):
+    model_config = ConfigDict(extra='allow')
     negate: Optional[bool] = Field(None, description='If false or missing this segment matches the names provided, otherwise it matches anything except the names provided.')
     names: List[str] = Field(..., description='Depending on the value of `negate` the names that should match or not match.')
 
 class ExceptionDetails(BaseModel):
+    model_config = ConfigDict(extra='allow')
     message: Optional[str] = Field(None, description='Message contained in the exception.')
     typeName: Optional[str] = Field(None, description='Short type name of the exception object.')
     fullTypeName: Optional[str] = Field(None, description='Fully-qualified type name of the exception object.')
@@ -529,11 +592,12 @@ class BreakpointModeApplicability(RootModel[str]):
     root: str = Field(..., description='Describes one or more type of breakpoint a `BreakpointMode` applies to. This is a non-exhaustive enumeration and may expand as future breakpoint types are added.')
 
 class ErrorResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     error: Optional[Message] = Field(None, description='A structured error message.')
 
 class ErrorResponse(Response):
-    success: Literal[False]
     body: ErrorResponseBody
+    success: Literal[False]
 
 class CancelRequest(Request):
     command: Literal['cancel']
@@ -545,6 +609,7 @@ class CancelRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class ModuleEventBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     reason: Literal['new', 'changed', 'removed'] = Field(..., description='The reason for the event.')
     module: Module = Field(..., description='The new, changed, or removed module. In case of `removed` only the module id is used.')
 
@@ -553,6 +618,7 @@ class ModuleEvent(Event):
     body: ModuleEventBody
 
 class InvalidatedEventBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     areas: Optional[List[InvalidatedAreas]] = Field(None, description="Set of logical areas that got invalidated. This property has a hint characteristic: a client can only be expected to make a 'best effort' in honoring the areas but there are no guarantees. If this property is missing, empty, or if values are not understood, the client should assume a single value `all`.")
     threadId: Optional[int] = Field(None, description='If specified, the client only needs to refetch data related to this thread.')
     stackFrameId: Optional[int] = Field(None, description='If specified, the client only needs to refetch data related to this stack frame (and the `threadId` is ignored).')
@@ -643,13 +709,15 @@ class TerminateRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class BreakpointLocationsResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     breakpoints: List[BreakpointLocation] = Field(..., description='Sorted set of possible breakpoint locations.')
 
 class BreakpointLocationsResponse(Response):
-    success: Literal[True]
     body: BreakpointLocationsResponseBody
+    success: Literal[True]
 
 class SetFunctionBreakpointsArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     breakpoints: List[FunctionBreakpoint] = Field(..., description='The function names of the breakpoints.')
 
 class DataBreakpointInfoRequest(Request):
@@ -662,19 +730,22 @@ class DataBreakpointInfoRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class DataBreakpointInfoResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     dataId: Optional[str] = Field(..., description="An identifier for the data on which a data breakpoint can be registered with the `setDataBreakpoints` request or null if no data breakpoint is available. If a `variablesReference` or `frameId` is passed, the `dataId` is valid in the current suspended state, otherwise it's valid indefinitely. See 'Lifetime of Object References' in the Overview section for details. Breakpoints set using the `dataId` in the `setDataBreakpoints` request may outlive the lifetime of the associated `dataId`.")
     description: str = Field(..., description='UI string that describes on what data the breakpoint is set on or why a data breakpoint is not available.')
     accessTypes: Optional[List[DataBreakpointAccessType]] = Field(None, description='Attribute lists the available access types for a potential data breakpoint. A UI client could surface this information.')
     canPersist: Optional[bool] = Field(None, description='Attribute indicates that a potential data breakpoint could be persisted across sessions.')
 
 class DataBreakpointInfoResponse(Response):
-    success: Literal[True]
     body: DataBreakpointInfoResponseBody
+    success: Literal[True]
 
 class SetDataBreakpointsArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     breakpoints: List[DataBreakpoint] = Field(..., description='The contents of this array replaces all existing data breakpoints. An empty array clears all data breakpoints.')
 
 class SetInstructionBreakpointsArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     breakpoints: List[InstructionBreakpoint] = Field(..., description='The instruction references of the breakpoints')
 
 class ContinueRequest(Request):
@@ -687,22 +758,26 @@ class ContinueRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class NextArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     threadId: int = Field(..., description='Specifies the thread for which to resume execution for one step (of the given granularity).')
     singleThread: Optional[bool] = Field(None, description='If this flag is true, all other suspended threads are not resumed.')
     granularity: Optional[SteppingGranularity] = Field(None, description='Stepping granularity. If no granularity is specified, a granularity of `statement` is assumed.')
 
 class StepInArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     threadId: int = Field(..., description='Specifies the thread for which to resume execution for one step-into (of the given granularity).')
     singleThread: Optional[bool] = Field(None, description='If this flag is true, all other suspended threads are not resumed.')
     targetId: Optional[int] = Field(None, description='Id of the target to step into.')
     granularity: Optional[SteppingGranularity] = Field(None, description='Stepping granularity. If no granularity is specified, a granularity of `statement` is assumed.')
 
 class StepOutArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     threadId: int = Field(..., description='Specifies the thread for which to resume execution for one step-out (of the given granularity).')
     singleThread: Optional[bool] = Field(None, description='If this flag is true, all other suspended threads are not resumed.')
     granularity: Optional[SteppingGranularity] = Field(None, description='Stepping granularity. If no granularity is specified, a granularity of `statement` is assumed.')
 
 class StepBackArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     threadId: int = Field(..., description='Specifies the thread for which to resume execution for one step backwards (of the given granularity).')
     singleThread: Optional[bool] = Field(None, description='If this flag is true, all other suspended threads are not resumed.')
     granularity: Optional[SteppingGranularity] = Field(None, description='Stepping granularity to step. If no granularity is specified, a granularity of `statement` is assumed.')
@@ -744,6 +819,7 @@ class PauseRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class StackTraceArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     threadId: int = Field(..., description='Retrieve the stacktrace for this thread.')
     startFrame: Optional[int] = Field(None, description='The index of the first frame to return; if omitted frames start at 0.')
     levels: Optional[int] = Field(None, description='The maximum number of frames to return. If levels is not specified or 0, all frames are returned.')
@@ -759,6 +835,7 @@ class ScopesRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class VariablesArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     variablesReference: int = Field(..., description="The variable for which to retrieve its children. The `variablesReference` must have been obtained in the current suspended state. See 'Lifetime of Object References' in the Overview section for details.")
     filter: Optional[Literal['indexed', 'named']] = Field(None, description='Filter to limit the child variables to either named or indexed. If omitted, both types are fetched.')
     start: Optional[int] = Field(None, description='The index of the first variable to return; if omitted children start at 0.\nThe attribute is only honored by a debug adapter if the corresponding capability `supportsVariablePaging` is true.')
@@ -766,17 +843,19 @@ class VariablesArguments(BaseModel):
     format: Optional[ValueFormat] = Field(None, description='Specifies details on how to format the Variable values.\nThe attribute is only honored by a debug adapter if the corresponding capability `supportsValueFormattingOptions` is true.')
 
 class SetVariableArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     variablesReference: int = Field(..., description="The reference of the variable container. The `variablesReference` must have been obtained in the current suspended state. See 'Lifetime of Object References' in the Overview section for details.")
     name: str = Field(..., description='The name of the variable in the container.')
     value: str = Field(..., description='The value of the variable.')
     format: Optional[ValueFormat] = Field(None, description='Specifies details on how to format the response value.')
 
 class ThreadsResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     threads: List[Thread] = Field(..., description='All threads.')
 
 class ThreadsResponse(Response):
-    success: Literal[True]
     body: ThreadsResponseBody
+    success: Literal[True]
 
 class TerminateThreadsRequest(Request):
     command: Literal['terminateThreads']
@@ -797,12 +876,13 @@ class ModulesRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class ModulesResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     modules: List[Module] = Field(..., description='All modules or range of modules.')
     totalModules: Optional[int] = Field(None, description='The total number of modules available.')
 
 class ModulesResponse(Response):
-    success: Literal[True]
     body: ModulesResponseBody
+    success: Literal[True]
 
 class LoadedSourcesRequest(Request):
     command: Literal['loadedSources']
@@ -814,6 +894,7 @@ class LoadedSourcesRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class EvaluateResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     result: str = Field(..., description='The result of the evaluate request.')
     type: Optional[str] = Field(None, description='The type of the evaluate result.\nThis attribute should only be returned by a debug adapter if the corresponding capability `supportsVariableType` is true.')
     presentationHint: Optional[VariablePresentationHint] = Field(None, description='Properties of an evaluate result that can be used to determine how to render the result in the UI.')
@@ -824,16 +905,18 @@ class EvaluateResponseBody(BaseModel):
     valueLocationReference: Optional[int] = Field(None, description="A reference that allows the client to request the location where the returned value is declared. For example, if a function pointer is returned, the adapter may be able to look up the function's location. This should be present only if the adapter is likely to be able to resolve the location.\n\nThis reference shares the same lifetime as the `variablesReference`. See 'Lifetime of Object References' in the Overview section for details.")
 
 class EvaluateResponse(Response):
-    success: Literal[True]
     body: EvaluateResponseBody
+    success: Literal[True]
 
 class SetExpressionArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     expression: str = Field(..., description='The l-value expression to assign to.')
     value: str = Field(..., description='The value expression to assign to the l-value expression.')
     frameId: Optional[int] = Field(None, description='Evaluate the expressions in the scope of this stack frame. If not specified, the expressions are evaluated in the global scope.')
     format: Optional[ValueFormat] = Field(None, description='Specifies how the resulting value should be formatted.')
 
 class SetExpressionResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     value: str = Field(..., description='The new value of the expression.')
     type: Optional[str] = Field(None, description='The type of the value.\nThis attribute should only be returned by a debug adapter if the corresponding capability `supportsVariableType` is true.')
     presentationHint: Optional[VariablePresentationHint] = Field(None, description='Properties of a value that can be used to determine how to render the result in the UI.')
@@ -844,8 +927,8 @@ class SetExpressionResponseBody(BaseModel):
     valueLocationReference: Optional[int] = Field(None, description="A reference that allows the client to request the location where the new value is declared. For example, if the new value is function pointer, the adapter may be able to look up the function's location. This should be present only if the adapter is likely to be able to resolve the location.\n\nThis reference shares the same lifetime as the `variablesReference`. See 'Lifetime of Object References' in the Overview section for details.")
 
 class SetExpressionResponse(Response):
-    success: Literal[True]
     body: SetExpressionResponseBody
+    success: Literal[True]
 
 class StepInTargetsRequest(Request):
     command: Literal['stepInTargets']
@@ -857,18 +940,20 @@ class StepInTargetsRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class StepInTargetsResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     targets: List[StepInTarget] = Field(..., description='The possible step-in targets of the specified source location.')
 
 class StepInTargetsResponse(Response):
-    success: Literal[True]
     body: StepInTargetsResponseBody
+    success: Literal[True]
 
 class GotoTargetsResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     targets: List[GotoTarget] = Field(..., description='The possible goto targets of the specified location.')
 
 class GotoTargetsResponse(Response):
-    success: Literal[True]
     body: GotoTargetsResponseBody
+    success: Literal[True]
 
 class CompletionsRequest(Request):
     command: Literal['completions']
@@ -889,14 +974,15 @@ class ExceptionInfoRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class ExceptionInfoResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     exceptionId: str = Field(..., description='ID of the exception that was thrown.')
     description: Optional[str] = Field(None, description='Descriptive text for the exception.')
     breakMode: ExceptionBreakMode = Field(..., description='Mode that caused the exception notification to be raised.')
     details: Optional[ExceptionDetails] = Field(None, description='Detailed information about the exception.')
 
 class ExceptionInfoResponse(Response):
-    success: Literal[True]
     body: ExceptionInfoResponseBody
+    success: Literal[True]
 
 class ReadMemoryRequest(Request):
     command: Literal['readMemory']
@@ -935,6 +1021,7 @@ class LocationsRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class Source(BaseModel):
+    model_config = ConfigDict(extra='allow')
     name: Optional[str] = Field(None, description='The short name of the source. Every source returned from the debug adapter has a name.\nWhen sending a source to the debug adapter this name is optional.')
     path: Optional[str] = Field(None, description='The path of the source to be shown in the UI.\nIt is only used to locate and load the content of the source if no `sourceReference` is specified (or its value is 0).')
     sourceReference: Optional[int] = Field(None, description='If the value > 0 the contents of the source must be retrieved through the `source` request (even if a path is specified).\nSince a `sourceReference` is only valid for a session, it can not be used to persist a source.\nThe value should be less than or equal to 2147483647 (2^31-1).')
@@ -945,6 +1032,7 @@ class Source(BaseModel):
     checksums: Optional[List[Checksum]] = Field(None, description='The checksums associated with this file.')
 
 class StackFrame(BaseModel):
+    model_config = ConfigDict(extra='allow')
     id: int = Field(..., description='An identifier for the stack frame. It must be unique across all threads.\nThis id can be used to retrieve the scopes of the frame with the `scopes` request or to restart the execution of a stack frame.')
     name: str = Field(..., description='The name of the stack frame, typically a method name.')
     source: Optional[Source] = Field(None, description='The source of the frame.')
@@ -958,6 +1046,7 @@ class StackFrame(BaseModel):
     presentationHint: Optional[Literal['normal', 'label', 'subtle']] = Field(None, description="A hint for how to present this frame in the UI.\nA value of `label` can be used to indicate that the frame is an artificial frame that is used as a visual label or separator. A value of `subtle` can be used to change the appearance of a frame in a 'subtle' way.")
 
 class Scope(BaseModel):
+    model_config = ConfigDict(extra='allow')
     name: str = Field(..., description="Name of the scope such as 'Arguments', 'Locals', or 'Registers'. This string is shown in the UI as is and can be translated.")
     presentationHint: Optional[str] = Field(None, description='A hint for how to present this scope in the UI. If this attribute is missing, the scope is shown with a generic UI.')
     variablesReference: int = Field(..., description="The variables of this scope can be retrieved by passing the value of `variablesReference` to the `variables` request as long as execution remains suspended. See 'Lifetime of Object References' in the Overview section for details.")
@@ -971,6 +1060,7 @@ class Scope(BaseModel):
     endColumn: Optional[int] = Field(None, description='End position of the range covered by the scope. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based.')
 
 class Variable(BaseModel):
+    model_config = ConfigDict(extra='allow')
     name: str = Field(..., description="The variable's name.")
     value: str = Field(..., description="The variable's value.\nThis can be a multi-line text, e.g. for a function the body of a function.\nFor structured variables (which do not have a simple value), it is recommended to provide a one-line representation of the structured object. This helps to identify the structured object in the collapsed state when its children are not yet visible.\nAn empty string can be used if no value should be shown in the UI.")
     type: Optional[str] = Field(None, description="The type of the variable's value. Typically shown in the UI when hovering over the value.\nThis attribute should only be returned by a debug adapter if the corresponding capability `supportsVariableType` is true.")
@@ -984,6 +1074,7 @@ class Variable(BaseModel):
     valueLocationReference: Optional[int] = Field(None, description="A reference that allows the client to request the location where the variable's value is declared. For example, if the variable contains a function pointer, the adapter may be able to look up the function's location. This should be present only if the adapter is likely to be able to resolve the location.\n\nThis reference shares the same lifetime as the `variablesReference`. See 'Lifetime of Object References' in the Overview section for details.")
 
 class Breakpoint(BaseModel):
+    model_config = ConfigDict(extra='allow')
     id: Optional[int] = Field(None, description='The identifier for the breakpoint. It is needed if breakpoint events are used to update or remove breakpoints.')
     verified: bool = Field(..., description='If true, the breakpoint could be set (but not necessarily at the desired location).')
     message: Optional[str] = Field(None, description='A message about the state of the breakpoint.\nThis is shown to the user and can be used to explain why a breakpoint could not be verified.')
@@ -997,6 +1088,7 @@ class Breakpoint(BaseModel):
     reason: Optional[Literal['pending', 'failed']] = Field(None, description='A machine-readable explanation of why a breakpoint may not be verified. If a breakpoint is verified or a specific reason is not known, the adapter should omit this property. Possible values include:\n\n- `pending`: Indicates a breakpoint might be verified in the future, but the adapter cannot verify it in the current state.\n - `failed`: Indicates a breakpoint was not able to be verified, and the adapter does not believe it can be verified without intervention.')
 
 class CompletionItem(BaseModel):
+    model_config = ConfigDict(extra='allow')
     label: str = Field(..., description='The label of this completion item. By default this is also the text that is inserted when selecting this completion.')
     text: Optional[str] = Field(None, description='If text is returned and not an empty string, then it is inserted instead of the label.')
     sortText: Optional[str] = Field(None, description='A string that should be used when comparing this item with other items. If not returned or an empty string, the `label` is used instead.')
@@ -1008,10 +1100,12 @@ class CompletionItem(BaseModel):
     selectionLength: Optional[int] = Field(None, description='Determines the length of the new selection after the text has been inserted (or replaced) and it is measured in UTF-16 code units. The selection can not extend beyond the bounds of the completion text. If omitted the length is assumed to be 0.')
 
 class ExceptionOptions(BaseModel):
+    model_config = ConfigDict(extra='allow')
     path: Optional[List[ExceptionPathSegment]] = Field(None, description='A path that selects a single or multiple exceptions in a tree. If `path` is missing, the whole tree is selected.\nBy convention the first segment of the path is a category that is used to group exceptions in the UI.')
     breakMode: ExceptionBreakMode = Field(..., description='Condition when a thrown exception should result in a break.')
 
 class DisassembledInstruction(BaseModel):
+    model_config = ConfigDict(extra='allow')
     address: str = Field(..., description='The address of the instruction. Treated as a hex value if prefixed with `0x`, or as a decimal value otherwise.')
     instructionBytes: Optional[str] = Field(None, description='Raw bytes representing the instruction and its operands, in an implementation-defined format.')
     instruction: str = Field(..., description='Text representing the instruction and its operands, in an implementation-defined format.')
@@ -1024,12 +1118,14 @@ class DisassembledInstruction(BaseModel):
     presentationHint: Optional[Literal['normal', 'invalid']] = Field(None, description="A hint for how to present the instruction in the UI.\n\nA value of `invalid` may be used to indicate this instruction is 'filler' and cannot be reached by the program. For example, unreadable memory addresses may be presented is 'invalid.'")
 
 class BreakpointMode(BaseModel):
+    model_config = ConfigDict(extra='allow')
     mode: str = Field(..., description='The internal ID of the mode. This value is passed to the `setBreakpoints` request.')
     label: str = Field(..., description='The name of the breakpoint mode. This is shown in the UI.')
     description: Optional[str] = Field(None, description='A help text providing additional information about the breakpoint mode. This string is typically shown as a hover and can be translated.')
     appliesTo: List[BreakpointModeApplicability] = Field(..., description='Describes one or more type of breakpoint this mode applies to.')
 
 class OutputEventBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     category: Optional[str] = Field(None, description='The output category. If not specified or if the category is not understood by the client, `console` is assumed.')
     output: str = Field(..., description="The output to report.\n\nANSI escape sequences may be used to influence text color and styling if `supportsANSIStyling` is present in both the adapter's `Capabilities` and the client's `InitializeRequestArguments`. A client may strip any unrecognized ANSI sequences.\n\nIf the `supportsANSIStyling` capabilities are not both true, then the client should display the output literally.")
     group: Optional[Literal['start', 'startCollapsed', 'end']] = Field(None, description='Support for keeping an output log organized by grouping related messages.')
@@ -1045,6 +1141,7 @@ class OutputEvent(Event):
     body: OutputEventBody
 
 class BreakpointEventBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     reason: str = Field(..., description='The reason for the event.')
     breakpoint: Breakpoint = Field(..., description='The `id` attribute is used to find the target breakpoint, the other attributes are used as the new values.')
 
@@ -1053,6 +1150,7 @@ class BreakpointEvent(Event):
     body: BreakpointEventBody
 
 class LoadedSourceEventBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     reason: Literal['new', 'changed', 'removed'] = Field(..., description='The reason for the event.')
     source: Source = Field(..., description='The new, changed, or removed source.')
 
@@ -1061,6 +1159,7 @@ class LoadedSourceEvent(Event):
     body: LoadedSourceEventBody
 
 class BreakpointLocationsArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     source: Source = Field(..., description='The source location of the breakpoints; either `source.path` or `source.sourceReference` must be specified.')
     line: int = Field(..., description='Start line of range to search possible breakpoint locations in. If only the line is specified, the request returns all possible locations in that line.')
     column: Optional[int] = Field(None, description='Start position within `line` to search possible breakpoint locations in. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based. If no column is given, the first position in the start line is assumed.')
@@ -1068,17 +1167,19 @@ class BreakpointLocationsArguments(BaseModel):
     endColumn: Optional[int] = Field(None, description='End position within `endLine` to search possible breakpoint locations in. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based. If no end column is given, the last position in the end line is assumed.')
 
 class SetBreakpointsArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     source: Source = Field(..., description='The source location of the breakpoints; either `source.path` or `source.sourceReference` must be specified.')
     breakpoints: Optional[List[SourceBreakpoint]] = Field(None, description='The code locations of the breakpoints.')
     lines: Optional[List[int]] = Field(None, description='Deprecated: The code locations of the breakpoints.')
     sourceModified: Optional[bool] = Field(None, description='A value of true indicates that the underlying source has been modified which results in new breakpoint locations.')
 
 class SetBreakpointsResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     breakpoints: List[Breakpoint] = Field(..., description='Information about the breakpoints.\nThe array elements are in the same order as the elements of the `breakpoints` (or the deprecated `lines`) array in the arguments.')
 
 class SetBreakpointsResponse(Response):
-    success: Literal[True]
     body: SetBreakpointsResponseBody
+    success: Literal[True]
 
 class SetFunctionBreakpointsRequest(Request):
     command: Literal['setFunctionBreakpoints']
@@ -1090,23 +1191,26 @@ class SetFunctionBreakpointsRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class SetFunctionBreakpointsResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     breakpoints: List[Breakpoint] = Field(..., description='Information about the breakpoints. The array elements correspond to the elements of the `breakpoints` array.')
 
 class SetFunctionBreakpointsResponse(Response):
-    success: Literal[True]
     body: SetFunctionBreakpointsResponseBody
+    success: Literal[True]
 
 class SetExceptionBreakpointsArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     filters: List[str] = Field(..., description='Set of exception filters specified by their ID. The set of all possible exception filters is defined by the `exceptionBreakpointFilters` capability. The `filter` and `filterOptions` sets are additive.')
     filterOptions: Optional[List[ExceptionFilterOptions]] = Field(None, description='Set of exception filters and their options. The set of all possible exception filters is defined by the `exceptionBreakpointFilters` capability. This attribute is only honored by a debug adapter if the corresponding capability `supportsExceptionFilterOptions` is true. The `filter` and `filterOptions` sets are additive.')
     exceptionOptions: Optional[List[ExceptionOptions]] = Field(None, description='Configuration options for selected exceptions.\nThe attribute is only honored by a debug adapter if the corresponding capability `supportsExceptionOptions` is true.')
 
 class SetExceptionBreakpointsResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     breakpoints: Optional[List[Breakpoint]] = Field(None, description='Information about the exception breakpoints or filters.\nThe breakpoints returned are in the same order as the elements of the `filters`, `filterOptions`, `exceptionOptions` arrays in the arguments. If both `filters` and `filterOptions` are given, the returned array must start with `filters` information first, followed by `filterOptions` information.')
 
 class SetExceptionBreakpointsResponse(Response):
-    success: Literal[True]
     body: Optional[SetExceptionBreakpointsResponseBody] = None
+    success: Literal[True]
 
 class SetDataBreakpointsRequest(Request):
     command: Literal['setDataBreakpoints']
@@ -1118,11 +1222,12 @@ class SetDataBreakpointsRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class SetDataBreakpointsResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     breakpoints: List[Breakpoint] = Field(..., description='Information about the data breakpoints. The array elements correspond to the elements of the input argument `breakpoints` array.')
 
 class SetDataBreakpointsResponse(Response):
-    success: Literal[True]
     body: SetDataBreakpointsResponseBody
+    success: Literal[True]
 
 class SetInstructionBreakpointsRequest(Request):
     command: Literal['setInstructionBreakpoints']
@@ -1134,11 +1239,12 @@ class SetInstructionBreakpointsRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class SetInstructionBreakpointsResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     breakpoints: List[Breakpoint] = Field(..., description='Information about the breakpoints. The array elements correspond to the elements of the `breakpoints` array.')
 
 class SetInstructionBreakpointsResponse(Response):
-    success: Literal[True]
     body: SetInstructionBreakpointsResponseBody
+    success: Literal[True]
 
 class NextRequest(Request):
     command: Literal['next']
@@ -1186,19 +1292,21 @@ class StackTraceRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class StackTraceResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     stackFrames: List[StackFrame] = Field(..., description='The frames of the stack frame. If the array has length zero, there are no stack frames available.\nThis means that there is no location information available.')
     totalFrames: Optional[int] = Field(None, description='The total number of frames available in the stack. If omitted or if `totalFrames` is larger than the available frames, a client is expected to request frames until a request returns less frames than requested (which indicates the end of the stack). Returning monotonically increasing `totalFrames` values for subsequent requests can be used to enforce paging in the client.')
 
 class StackTraceResponse(Response):
-    success: Literal[True]
     body: StackTraceResponseBody
+    success: Literal[True]
 
 class ScopesResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     scopes: List[Scope] = Field(..., description='The scopes of the stack frame. If the array has length zero, there are no scopes available.')
 
 class ScopesResponse(Response):
-    success: Literal[True]
     body: ScopesResponseBody
+    success: Literal[True]
 
 class VariablesRequest(Request):
     command: Literal['variables']
@@ -1210,11 +1318,12 @@ class VariablesRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class VariablesResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     variables: List[Variable] = Field(..., description='All (or a range) of variables for the given variable reference.')
 
 class VariablesResponse(Response):
-    success: Literal[True]
     body: VariablesResponseBody
+    success: Literal[True]
 
 class SetVariableRequest(Request):
     command: Literal['setVariable']
@@ -1226,17 +1335,20 @@ class SetVariableRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class SourceArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     source: Optional[Source] = Field(None, description='Specifies the source content to load. Either `source.path` or `source.sourceReference` must be specified.')
     sourceReference: int = Field(..., description='The reference to the source. This is the same as `source.sourceReference`.\nThis is provided for backward compatibility since old clients do not understand the `source` attribute.')
 
 class LoadedSourcesResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     sources: List[Source] = Field(..., description='Set of loaded sources.')
 
 class LoadedSourcesResponse(Response):
-    success: Literal[True]
     body: LoadedSourcesResponseBody
+    success: Literal[True]
 
 class EvaluateArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     expression: str = Field(..., description='The expression to evaluate.')
     frameId: Optional[int] = Field(None, description='Evaluate the expression in the scope of this stack frame. If not specified, the expression is evaluated in the global scope.')
     line: Optional[int] = Field(None, description="The contextual line where the expression should be evaluated. In the 'hover' context, this should be set to the start of the expression being hovered.")
@@ -1255,25 +1367,29 @@ class SetExpressionRequest(Request):
         return response_adaptor.validate_python(res.model_dump())
 
 class GotoTargetsArguments(BaseModel):
+    model_config = ConfigDict(extra='allow')
     source: Source = Field(..., description='The source location for which the goto targets are determined.')
     line: int = Field(..., description='The line location for which the goto targets are determined.')
     column: Optional[int] = Field(None, description='The position within `line` for which the goto targets are determined. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based.')
 
 class CompletionsResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     targets: List[CompletionItem] = Field(..., description='The possible completions for .')
 
 class CompletionsResponse(Response):
-    success: Literal[True]
     body: CompletionsResponseBody
+    success: Literal[True]
 
 class DisassembleResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     instructions: List[DisassembledInstruction] = Field(..., description='The list of disassembled instructions.')
 
 class DisassembleResponse(Response):
-    success: Literal[True]
     body: Optional[DisassembleResponseBody] = None
+    success: Literal[True]
 
 class LocationsResponseBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     source: Source = Field(..., description='The source containing the location; either `source.path` or `source.sourceReference` must be specified.')
     line: int = Field(..., description='The line number of the location. The client capability `linesStartAt1` determines whether it is 0- or 1-based.')
     column: Optional[int] = Field(None, description='Position of the location within the `line`. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based. If no column is given, the first position in the start line is assumed.')
@@ -1281,10 +1397,11 @@ class LocationsResponseBody(BaseModel):
     endColumn: Optional[int] = Field(None, description='End position of the location within `endLine`, present if the location refers to a range. It is measured in UTF-16 code units and the client capability `columnsStartAt1` determines whether it is 0- or 1-based.')
 
 class LocationsResponse(Response):
-    success: Literal[True]
     body: Optional[LocationsResponseBody] = None
+    success: Literal[True]
 
 class Capabilities(BaseModel):
+    model_config = ConfigDict(extra='allow')
     supportsConfigurationDoneRequest: Optional[bool] = Field(None, description='The debug adapter supports the `configurationDone` request.')
     supportsFunctionBreakpoints: Optional[bool] = Field(None, description='The debug adapter supports function breakpoints.')
     supportsConditionalBreakpoints: Optional[bool] = Field(None, description='The debug adapter supports conditional breakpoints.')
@@ -1329,6 +1446,7 @@ class Capabilities(BaseModel):
     supportsANSIStyling: Optional[bool] = Field(None, description='The debug adapter supports ANSI escape sequences in styling of `OutputEvent.output` and `Variable.value` fields.')
 
 class CapabilitiesEventBody(BaseModel):
+    model_config = ConfigDict(extra='allow')
     capabilities: Capabilities = Field(..., description='The set of updated capabilities.')
 
 class CapabilitiesEvent(Event):
@@ -1336,8 +1454,8 @@ class CapabilitiesEvent(Event):
     body: CapabilitiesEventBody
 
 class InitializeResponse(Response):
-    success: Literal[True]
     body: Optional[Capabilities] = Field(None, description='The capabilities of this debug adapter.')
+    success: Literal[True]
 
 class BreakpointLocationsRequest(Request):
     command: Literal['breakpointLocations']

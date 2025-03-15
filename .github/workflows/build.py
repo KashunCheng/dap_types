@@ -79,6 +79,12 @@ def create_library_source(json_schema: str):
             if node.name == "Response":
                 return node
             if node.name == "ErrorResponse":
+                assert type(node.body[0]) == ast.AnnAssign
+                assert type(node.body[0].annotation) == ast.Name
+                assert node.body[0].annotation.id == "ErrorResponseBody"
+                node.body[0] = ast.parse(
+                    "body: Optional[ErrorResponseBody] = None"
+                ).body[0]
                 node.body.append(ast.parse("success: Literal[False]").body[0])
                 return node
             node.body.append(ast.parse(f"success: Literal[True]").body[0])
@@ -144,21 +150,63 @@ def discriminate_response(cls, res: Response) -> {response_type} | ErrorResponse
         f.write(ast.unparse(model))
 
 
-def main():
+pyproject_path = os.path.join(PROJECT_ROOT, "pyproject.toml")
+
+
+def get_version():
+    with open(pyproject_path, "r") as f:
+        content = f.read()
+        data = tomllib.loads(content)
+        version: str = data["project"]["version"]
+        assert type(version) == str
+        return content, version
+
+
+pyproject_content, old_version = get_version()
+
+
+def parse_version(version: str) -> Tuple[str, int | None]:
+    epoch = version.split("!")[0]
+    post_version_arr = old_version.split(".post")
+    if len(post_version_arr) > 1:
+        return epoch, int(post_version_arr[1])
+    else:
+        return epoch, None
+
+
+def bump_version():
+    global old_version, pyproject_content
     today = datetime.today().strftime("%Y%m%d")
+    old_epoch, post = parse_version(old_version)
+    if old_epoch == today:
+        post = post + 1 if post else 1
+    version_str = f"{today}!{list(versions.keys())[-1]}"
+    if post:
+        version_str += f".post{post}"
+    with open(pyproject_path, "w") as f:
+        pyproject_content = pyproject_content.replace(old_version, version_str)
+        f.write(pyproject_content)
+    old_version = version_str
+
+
+def main():
+    if not os.getenv("CI"):
+        bump_version()
+    global old_version, pyproject_content
+    _, post = parse_version(old_version)
+    today = datetime.today().strftime("%Y%m%d")
+
     for version, git_hash in versions.items():
         schema = get_schema(git_hash)
         create_library_source(schema)
         version_str = f"{today}!{version}"
-        pyproject_path = os.path.join(PROJECT_ROOT, "pyproject.toml")
-        with open(pyproject_path, "r") as f:
-            content = f.read()
-            data = tomllib.loads(content)
-            old_version = data["project"]["version"]
-            content = content.replace(old_version, version_str)
+        if post:
+            version_str += f".post{post}"
         with open(pyproject_path, "w") as f:
+            content = pyproject_content.replace(old_version, version_str)
             f.write(content)
-        subprocess.run(["uv", "build"], check=True, cwd=PROJECT_ROOT)
+        if os.getenv("CI"):
+            subprocess.run(["uv", "build"], check=True, cwd=PROJECT_ROOT)
 
 
 if __name__ == "__main__":

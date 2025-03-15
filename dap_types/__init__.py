@@ -596,7 +596,7 @@ class ErrorResponseBody(BaseModel):
     error: Optional[Message] = Field(None, description='A structured error message.')
 
 class ErrorResponse(Response):
-    body: ErrorResponseBody
+    body: Optional[ErrorResponseBody] = None
     success: Literal[False]
 
 class CancelRequest(Request):

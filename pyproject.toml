@@ -1,8 +1,8 @@
 [project]
 name = "dap-types"
-version = "1!1.70"
+version = "20250315!1.70"
 description = "Debugger Adapter Protocol types for Python."
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 dependencies = [
     "pydantic>=2.10.6",
 ]
@@ -11,3 +11,7 @@ dependencies = [
 dev = [
     "datamodel-code-generator>=0.28.4",
 ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
